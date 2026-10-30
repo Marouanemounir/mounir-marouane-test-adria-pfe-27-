@@ -1,0 +1,14 @@
+type Query {
+    transactionById(id: ID!): Transaction
+    transactionsByAccount(accountId: ID!): [Transaction!]!
+}
+
+type Transaction {
+    id: ID!
+    accountId: ID!
+    amount: String!
+    currency: String!
+    merchantCategory: String
+    country: String
+    createdAt: String!
+}

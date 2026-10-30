@@ -1,0 +1,12 @@
+type Query {
+    accounts: [Account!]!
+    accountById(id: ID!): Account
+}
+
+type Account {
+    id: ID!
+    customerReference: String!
+    status: String!
+    currency: String!
+    balance: Float!
+}

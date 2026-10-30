@@ -1,3 +1,7 @@
+# ADRIA - Étape 6 : GraphQL, MCP et agent bancaire
+
+Voir [le guide de l'étape 6](docs/step6.md), [la collection Postman](docs/step6.postman_collection.json) et [.env.example](.env.example).
+
 # ADRIA ENSET PFE 2027 — Etape 5 : Communication asynchrone Kafka
 
 L'étape 5 publie les transactions bancaires confirmées sur `bank.transactions.created`

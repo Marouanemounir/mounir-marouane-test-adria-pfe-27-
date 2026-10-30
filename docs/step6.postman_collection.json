@@ -1,0 +1,495 @@
+{
+  "info": {
+    "name": "ADRIA — Étape 6",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "accountUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "transactionUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "agentUrl",
+      "value": "http://localhost:8083"
+    },
+    {
+      "key": "mcpToken",
+      "value": ""
+    },
+    {
+      "key": "agentToken",
+      "value": ""
+    },
+    {
+      "key": "accountId",
+      "value": ""
+    },
+    {
+      "key": "transactionId",
+      "value": ""
+    },
+    {
+      "key": "accountSession",
+      "value": ""
+    },
+    {
+      "key": "transactionSession",
+      "value": ""
+    },
+    {
+      "key": "accountProtocol",
+      "value": "2025-03-26"
+    },
+    {
+      "key": "transactionProtocol",
+      "value": "2025-03-26"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Créer un compte de démonstration",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerReference\": \"POSTMAN-STEP6\",\n  \"currency\": \"EUR\",\n  \"balance\": 5000\n}"
+        },
+        "url": "{{accountUrl}}/api/accounts"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"accountId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Créer une transaction via le service existant",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{$guid}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"{{accountId}}\",\n  \"amount\": 250.25,\n  \"currency\": \"EUR\",\n  \"merchantCategory\": \"FOOD\",\n  \"country\": \"FR\"\n}"
+        },
+        "url": "{{transactionUrl}}/api/transactions"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.collectionVariables.set(\"transactionId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. GraphQL accounts",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"{ accounts { id customerReference balance } }\"\n}"
+        },
+        "url": "{{accountUrl}}/graphql"
+      }
+    },
+    {
+      "name": "4. GraphQL accountById",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id: ID!) { accountById(id: $id) { id status currency balance } }\",\n  \"variables\": {\n    \"id\": \"{{accountId}}\"\n  }\n}"
+        },
+        "url": "{{accountUrl}}/graphql"
+      }
+    },
+    {
+      "name": "5. GraphQL transactionsByAccount",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id: ID!) { transactionsByAccount(accountId: $id) { id amount currency createdAt } }\",\n  \"variables\": {\n    \"id\": \"{{accountId}}\"\n  }\n}"
+        },
+        "url": "{{transactionUrl}}/graphql"
+      }
+    },
+    {
+      "name": "6. GraphQL transactionById",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"query\": \"query($id: ID!) { transactionById(id: $id) { id amount createdAt } }\",\n  \"variables\": {\n    \"id\": \"{{transactionId}}\"\n  }\n}"
+        },
+        "url": "{{transactionUrl}}/graphql"
+      }
+    },
+    {
+      "name": "account MCP initialize",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2025-03-26\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"postman\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+        },
+        "url": "{{accountUrl}}/mcp"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const raw = pm.response.text();",
+              "const data = raw.trim().startsWith(\"{\") ? raw : raw.split(\"\\n\").filter(l => l.startsWith(\"data:\")).pop().slice(5).trim();",
+              "const rpc = JSON.parse(data);",
+              "pm.collectionVariables.set(\"accountSession\", pm.response.headers.get(\"Mcp-Session-Id\") || \"\");",
+              "pm.collectionVariables.set(\"accountProtocol\", rpc.result.protocolVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "account MCP initialized",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{accountSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{accountProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notifications/initialized\"\n}"
+        },
+        "url": "{{accountUrl}}/mcp"
+      }
+    },
+    {
+      "name": "account MCP tools/list",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{accountSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{accountProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+        },
+        "url": "{{accountUrl}}/mcp"
+      }
+    },
+    {
+      "name": "account MCP tools/call",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{accountSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{accountProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"getAccountBalance\",\n    \"arguments\": {\n      \"accountId\": \"{{accountId}}\"\n    }\n  }\n}"
+        },
+        "url": "{{accountUrl}}/mcp"
+      }
+    },
+    {
+      "name": "transaction MCP initialize",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 1,\n  \"method\": \"initialize\",\n  \"params\": {\n    \"protocolVersion\": \"2025-03-26\",\n    \"capabilities\": {},\n    \"clientInfo\": {\n      \"name\": \"postman\",\n      \"version\": \"1.0.0\"\n    }\n  }\n}"
+        },
+        "url": "{{transactionUrl}}/mcp"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const raw = pm.response.text();",
+              "const data = raw.trim().startsWith(\"{\") ? raw : raw.split(\"\\n\").filter(l => l.startsWith(\"data:\")).pop().slice(5).trim();",
+              "const rpc = JSON.parse(data);",
+              "pm.collectionVariables.set(\"transactionSession\", pm.response.headers.get(\"Mcp-Session-Id\") || \"\");",
+              "pm.collectionVariables.set(\"transactionProtocol\", rpc.result.protocolVersion);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "transaction MCP initialized",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{transactionSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{transactionProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"method\": \"notifications/initialized\"\n}"
+        },
+        "url": "{{transactionUrl}}/mcp"
+      }
+    },
+    {
+      "name": "transaction MCP tools/list",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{transactionSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{transactionProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 2,\n  \"method\": \"tools/list\",\n  \"params\": {}\n}"
+        },
+        "url": "{{transactionUrl}}/mcp"
+      }
+    },
+    {
+      "name": "transaction MCP tools/call",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{mcpToken}}"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json, text/event-stream"
+          },
+          {
+            "key": "Mcp-Session-Id",
+            "value": "{{transactionSession}}"
+          },
+          {
+            "key": "MCP-Protocol-Version",
+            "value": "{{transactionProtocol}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"jsonrpc\": \"2.0\",\n  \"id\": 3,\n  \"method\": \"tools/call\",\n  \"params\": {\n    \"name\": \"getTransactionsByAccount\",\n    \"arguments\": {\n      \"accountId\": \"{{accountId}}\"\n    }\n  }\n}"
+        },
+        "url": "{{transactionUrl}}/mcp"
+      }
+    },
+    {
+      "name": "Agent — solde réel et preuve MCP",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{agentToken}}"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"message\": \"Quel est le solde du compte {{accountId}} ? Indique le montant et la devise.\"\n}"
+        },
+        "url": "{{agentUrl}}/api/chat"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"MCP a réellement été appelé\", function () {",
+              "    pm.response.to.have.status(200);",
+              "    pm.expect(pm.response.json().toolsUsed.some(n => /getAccount(Balance|Details)$/.test(n))).to.equal(true);",
+              "});"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
