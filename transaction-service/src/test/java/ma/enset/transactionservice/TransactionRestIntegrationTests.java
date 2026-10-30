@@ -3,6 +3,7 @@ package ma.enset.transactionservice;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import ma.enset.transactionservice.domain.Transaction;
 import ma.enset.transactionservice.integration.*;
+import ma.enset.transactionservice.messaging.TransactionEventPublisher;
 import ma.enset.transactionservice.repository.*;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -32,6 +33,7 @@ class TransactionRestIntegrationTests {
     @Autowired TransactionOperationRepository operations;
     @MockitoSpyBean TransactionRepository transactions;
     @MockitoBean AccountClient client;
+    @MockitoBean TransactionEventPublisher eventPublisher;
     @Autowired io.github.resilience4j.circuitbreaker.CircuitBreakerRegistry circuits;
     UUID source, destination;
     Map<UUID, AccountOperationResponse> receipts;

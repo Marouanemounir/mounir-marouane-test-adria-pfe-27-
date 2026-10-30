@@ -1,4 +1,8 @@
-# ADRIA ENSET PFE 2027 — Etape 4 : Services techniques Spring Cloud
+# ADRIA ENSET PFE 2027 — Etape 5 : Communication asynchrone Kafka
+
+L'étape 5 publie les transactions bancaires confirmées sur `bank.transactions.created`
+après commit et les journalise dans le groupe `adria-transaction-logging`.
+Voir [la démonstration Kafka et les résultats réels](docs/kafka.md).
 
 L'étape 4 ajoute Eureka (8761), Config Server native (8888) et Gateway WebFlux (8080).
 Account et Transaction s'enregistrent dans Eureka ; Transaction charge le plafond partagé depuis Config.

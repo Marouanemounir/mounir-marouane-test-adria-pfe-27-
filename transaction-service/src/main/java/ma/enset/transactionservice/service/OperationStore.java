@@ -2,9 +2,11 @@ package ma.enset.transactionservice.service;
 
 import ma.enset.transactionservice.domain.*;
 import ma.enset.transactionservice.integration.AccountOperationResponse;
+import ma.enset.transactionservice.messaging.TransactionCreatedEvent;
 import ma.enset.transactionservice.repository.*;
 import ma.enset.transactionservice.service.exception.BusinessException;
 import org.springframework.stereotype.Service;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
 
@@ -13,8 +15,10 @@ import java.util.UUID;
 public class OperationStore {
     private final TransactionOperationRepository operations;
     private final TransactionRepository transactions;
-    public OperationStore(TransactionOperationRepository operations, TransactionRepository transactions) {
-        this.operations = operations; this.transactions = transactions;
+    private final ApplicationEventPublisher events;
+    public OperationStore(TransactionOperationRepository operations, TransactionRepository transactions,
+            ApplicationEventPublisher events) {
+        this.operations = operations; this.transactions = transactions; this.events = events;
     }
     @Transactional(propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW)
     public TransactionOperation prepare(TransactionOperation candidate) {
@@ -40,13 +44,17 @@ public class OperationStore {
         Transaction debit = transactions.saveAndFlush(new Transaction(o.getSourceAccountId(), o.getAmount(),
                 o.getCurrency(), o.getMerchantCategory(), o.getCountry(), id, transfer ? id : null, "DEBIT"));
         UUID creditId = null;
+        Transaction credit = null;
         if (transfer) {
-            Transaction credit = transactions.saveAndFlush(new Transaction(o.getDestinationAccountId(), o.getAmount(),
+            credit = transactions.saveAndFlush(new Transaction(o.getDestinationAccountId(), o.getAmount(),
                     o.getCurrency(), o.getMerchantCategory(), o.getCountry(), id, id, "CREDIT"));
             creditId = credit.getId();
         }
         o.complete(debit.getId(), creditId, receipt.sourceBalanceAfter(), receipt.destinationBalanceAfter());
         operations.flush();
+        // Only new confirmed entries; listeners send to Kafka after this transaction commits.
+        events.publishEvent(TransactionCreatedEvent.from(debit));
+        if (credit != null) events.publishEvent(TransactionCreatedEvent.from(credit));
         return o;
     }
 }
