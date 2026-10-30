@@ -1,0 +1,429 @@
+{
+  "info": {
+    "name": "ADRIA Step 3 - Transactions",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "Execute in order. Each collection run generates new operation keys and fictitious accounts."
+  },
+  "variable": [
+    {
+      "key": "accountUrl",
+      "value": "http://localhost:8081"
+    },
+    {
+      "key": "transactionUrl",
+      "value": "http://localhost:8082"
+    },
+    {
+      "key": "sourceAccountId",
+      "value": ""
+    },
+    {
+      "key": "destinationAccountId",
+      "value": ""
+    },
+    {
+      "key": "purchaseKey",
+      "value": ""
+    },
+    {
+      "key": "transferKey",
+      "value": ""
+    },
+    {
+      "key": "rejectedKey",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Create source 5000 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{accountUrl}}/api/accounts",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerReference\": \"TEST-POSTMAN-SOURCE\",\n  \"currency\": \"EUR\",\n  \"balance\": 5000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"sourceAccountId\", pm.response.json().id);",
+              "[\"purchaseKey\", \"transferKey\", \"rejectedKey\"].forEach(k => pm.collectionVariables.set(k, pm.variables.replaceIn(\"{{$guid}}\")));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Create destination 1000 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": "{{accountUrl}}/api/accounts",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"customerReference\": \"TEST-POSTMAN-DESTINATION\",\n  \"currency\": \"EUR\",\n  \"balance\": 1000\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));",
+              "pm.collectionVariables.set(\"destinationAccountId\", pm.response.json().id);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Purchase 250 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{purchaseKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"{{sourceAccountId}}\",\n  \"amount\": 250,\n  \"currency\": \"EUR\",\n  \"merchantCategory\": \"FOOD\",\n  \"country\": \"FR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Replay purchase with same key",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{purchaseKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"{{sourceAccountId}}\",\n  \"amount\": 250,\n  \"currency\": \"EUR\",\n  \"merchantCategory\": \"FOOD\",\n  \"country\": \"FR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Source balance 4750",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{accountUrl}}/api/accounts/{{sourceAccountId}}/balance"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"4750 EUR\", () => pm.expect(pm.response.json().balance).to.eql(4750));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Transfer 300 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{transferKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions/transfers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sourceAccountId\": \"{{sourceAccountId}}\",\n  \"destinationAccountId\": \"{{destinationAccountId}}\",\n  \"amount\": 300,\n  \"currency\": \"EUR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Replay transfer",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{transferKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions/transfers",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"sourceAccountId\": \"{{sourceAccountId}}\",\n  \"destinationAccountId\": \"{{destinationAccountId}}\",\n  \"amount\": 300,\n  \"currency\": \"EUR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 201\", () => pm.response.to.have.status(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. Source balance 4450",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{accountUrl}}/api/accounts/{{sourceAccountId}}/balance"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"4450 EUR\", () => pm.expect(pm.response.json().balance).to.eql(4450));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "9. Destination balance 1300",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{accountUrl}}/api/accounts/{{destinationAccountId}}/balance"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"1300 EUR\", () => pm.expect(pm.response.json().balance).to.eql(1300));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "10. Reject 1500 EUR",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{rejectedKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"{{sourceAccountId}}\",\n  \"amount\": 1500,\n  \"currency\": \"EUR\",\n  \"merchantCategory\": \"FOOD\",\n  \"country\": \"FR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 400\", () => pm.response.to.have.status(400));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "11. History",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{transactionUrl}}/api/transactions/account/{{sourceAccountId}}"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));",
+              "pm.test(\"Two entries\", () => pm.expect(pm.response.json()).to.have.lengthOf(2));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "12. Block source",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "url": "{{accountUrl}}/api/accounts/{{sourceAccountId}}/status?status=BLOCKED"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 200\", () => pm.response.to.have.status(200));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "13. Reject blocked source",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Idempotency-Key",
+            "value": "{{rejectedKey}}"
+          }
+        ],
+        "url": "{{transactionUrl}}/api/transactions",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"accountId\": \"{{sourceAccountId}}\",\n  \"amount\": 10,\n  \"currency\": \"EUR\",\n  \"merchantCategory\": \"FOOD\",\n  \"country\": \"FR\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"HTTP 409\", () => pm.response.to.have.status(409));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

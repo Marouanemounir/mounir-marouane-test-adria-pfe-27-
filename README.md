@@ -1,9 +1,18 @@
-# ADRIA ENSET PFE 2027 — Etape 2 : Account Service
+# ADRIA ENSET PFE 2027 — Etape 3 : Transaction Service
+
+L'étape 3 ajoute Transaction Service (8082), OpenFeign, Resilience4j, les débits idempotents
+et les virements atomiques dans Account Service (8081).
+Voir [la documentation complète de l'étape 3](docs/transaction-service.md) pour les fichiers,
+les commandes, les exemples HTTP, la cohérence distribuée, les tests et les limites.
+Importer [la collection Postman](docs/transaction-service.postman_collection.json) ou exécuter
+`powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-transaction-service.ps1`.
+
+La documentation ci-dessous décrit l'étape 2 conservée et ses vérifications initiales.
 
 Le POM racine est un agregateur Maven `pom` et le parent local des six modules.
 Java 21, Spring Boot 3.5.16 et le BOM Spring Cloud 2025.0.3 sont centralises dans ce parent.
-Les cinq autres services conservent leurs applications et tests de demarrage existants.
-Seul Account Service est implemente a cette etape.
+Les quatre services des étapes suivantes conservent leurs applications et tests de démarrage existants.
+Account Service conserve ses contrats REST ; les ajouts internes sont documentés dans l'étape 3.
 
 Versions verifiees sur Maven Central et dans les sources officielles :
 
@@ -114,7 +123,7 @@ Les tests utilisent une base H2 distincte `account-tests`.
 
 Les packages `web.graphql` et `mcp` sont reserves aux etapes correspondantes et ne contiennent
 aucune implementation a cette etape. Les integrations Cloud, Kafka, IA et l'interface Angular
-restent hors perimetre. Transaction Service n'est pas implemente.
+restent hors perimetre. Transaction Service est maintenant implémenté à l'étape 3.
 
 Message de commit propose :
 

@@ -16,6 +16,16 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ProblemDetail duplicateOperation(org.springframework.dao.DataIntegrityViolationException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.CONFLICT,
+                "Concurrent operation; retry with the same Idempotency-Key");
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ProblemDetail validation(jakarta.validation.ConstraintViolationException exception) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+    }
     @ExceptionHandler(AccountNotFoundException.class)
     public ProblemDetail notFound(AccountNotFoundException exception) {
         return ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
