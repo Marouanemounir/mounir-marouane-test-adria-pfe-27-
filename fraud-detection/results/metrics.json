@@ -1,0 +1,76 @@
+{
+  "precision_fraud": 0.12213740458015267,
+  "recall_fraud": 0.6274509803921569,
+  "f1_fraud": 0.20447284345047922,
+  "average_precision": 0.1886052408479398,
+  "confusion_matrix": [
+    [
+      719,
+      230
+    ],
+    [
+      19,
+      32
+    ]
+  ],
+  "confusion_matrix_order": [
+    "legitime (0)",
+    "fraude (1)"
+  ],
+  "threshold": 0.5,
+  "random_state": 42,
+  "train_size": 4000,
+  "test_size": 1000,
+  "train_class_counts": {
+    "0": 3794,
+    "1": 206
+  },
+  "test_class_counts": {
+    "0": 949,
+    "1": 51
+  },
+  "fraud_rate": 0.0514,
+  "test_fraud_rate": 0.051,
+  "classification_report": {
+    "legitime": {
+      "precision": 0.9742547425474255,
+      "recall": 0.7576396206533192,
+      "f1-score": 0.8524007113218731,
+      "support": 949.0
+    },
+    "fraude": {
+      "precision": 0.12213740458015267,
+      "recall": 0.6274509803921569,
+      "f1-score": 0.20447284345047922,
+      "support": 51.0
+    },
+    "accuracy": 0.751,
+    "macro avg": {
+      "precision": 0.5481960735637891,
+      "recall": 0.692545300522738,
+      "f1-score": 0.5284367773861762,
+      "support": 1000.0
+    },
+    "weighted avg": {
+      "precision": 0.9307967583110945,
+      "recall": 0.751,
+      "f1-score": 0.8193563900604319,
+      "support": 1000.0
+    }
+  },
+  "dataset": {
+    "filename": "bank_transactions.csv",
+    "sha256": "4c74c38b646e10303f52e32673a4a2882a5d3c964e29b3c446866570f7124c24",
+    "rows": 5000,
+    "provenance": "CSV fourni avec le sujet ; origine réelle ou synthétique non documentée"
+  },
+  "versions": {
+    "python": "3.12.10",
+    "numpy": "2.2.6",
+    "pandas": "2.2.3",
+    "scikit-learn": "1.6.1",
+    "scipy": "1.15.3",
+    "matplotlib": "3.10.3",
+    "joblib": "1.5.1"
+  }
+}
