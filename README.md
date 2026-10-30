@@ -1,4 +1,12 @@
-# ADRIA ENSET PFE 2027 — Etape 3 : Transaction Service
+# ADRIA ENSET PFE 2027 — Etape 4 : Services techniques Spring Cloud
+
+L'étape 4 ajoute Eureka (8761), Config Server native (8888) et Gateway WebFlux (8080).
+Account et Transaction s'enregistrent dans Eureka ; Transaction charge le plafond partagé depuis Config.
+Consulter [la documentation de l'étape 4](docs/cloud-services.md) pour les commandes de démarrage,
+les URLs, les fichiers modifiés et les résultats réels.
+Vérification : `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\test-cloud-services.ps1`.
+
+Les informations suivantes décrivent les étapes métier précédentes, conservées.
 
 L'étape 3 ajoute Transaction Service (8082), OpenFeign, Resilience4j, les débits idempotents
 et les virements atomiques dans Account Service (8081).

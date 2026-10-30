@@ -4,8 +4,8 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
-// Logical name retained for future discovery. Remove the URL configuration when adding Eureka.
-@FeignClient(name = "account-service", url = "${bank.services.account-url}", configuration = AccountFeignConfiguration.class)
+// Empty URL selects Eureka; an explicit URL keeps the standalone HTTP mode.
+@FeignClient(name = "account-service", url = "${bank.services.account-url:}", configuration = AccountFeignConfiguration.class)
 public interface AccountClient {
     @GetMapping("/api/accounts/{id}") AccountClientResponse getAccount(@PathVariable("id") UUID id);
     @GetMapping("/api/accounts/{id}/balance") BalanceResponse getBalance(@PathVariable("id") UUID id);
