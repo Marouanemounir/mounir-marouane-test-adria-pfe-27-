@@ -1,3 +1,7 @@
+# ADRIA Banking Platform - Partie G : Angular
+
+Interface bancaire et assistant IA : voir [banking-web/README.md](banking-web/README.md) pour le lancement, les contrats REST, la configuration du proxy et les validations.
+
 # ADRIA - Étape 6 : GraphQL, MCP et agent bancaire
 
 Voir [le guide de l'étape 6](docs/step6.md), [la collection Postman](docs/step6.postman_collection.json) et [.env.example](.env.example).
